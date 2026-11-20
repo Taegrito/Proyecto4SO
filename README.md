@@ -47,3 +47,40 @@ minidb.c la usa para medir la memoria libre y los fallos del snapshot
 | user/minidb.c | Aplicación de demostración MiniDB. |
 | user/minidb.h | Estructuras y funciones auxiliares de MiniDB. |
 
+# Compilación y ejecución
+Desde la raíz del proyecto, para iniciar xv6:
+```bash
+make qemu
+```
+Una vez dentro de la consola, se pueden ejecutar las siguientes pruebas
+## Pruebas de Copy-on-Write
+```text
+cowtest
+```
+## Pruebas de tablas de páginas
+```text
+pgtbltest
+```
+## Consultas de MiniDb
+```text
+minidb consulta 1
+minidb consulta 2
+minidb consulta 3
+minidb consulta 8
+```
+## Consultas de snapshots
+```text
+minidb snapshot 2000
+minidb snapshot 0
+```
+## Visualización del mapa de memoria
+```text
+minidb snapshot 2000
+minidb snapshot 0
+```
+## Pruebas generales de xv6
+```text
+usertests -q
+```
+# Declaración de uso de IA
+Se utilizó ChatGPT como herramienta de apoyo  para la detección y correción de errores
