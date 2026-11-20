@@ -33,6 +33,44 @@ minidb.c la usa para medir la memoria libre y los fallos del snapshot
 
 ## Parte C: MiniDB
 
+
+Solo se modificó `user/minidb.c`. Se completaron
+`guardar_snapshot()` y `snapshot()`, y se agregó la función auxiliar
+`bits_en_uno()`, que cuenta las páginas marcadas por `pgaccess()`.
+
+### Consulta paralela (`minidb consulta K`) y mapa (`minidb mapa`)
+
+Ambos comandos venían implementados en el esqueleto y no se cambiaron.
+`consulta` crea K trabajadores con `fork()`, cada uno procesa un rango de
+cuentas y envía su resultado al padre por un pipe propio. Como los
+trabajadores solo leen la tabla, CoW nunca copia sus páginas: por eso la
+memoria libre casi no baja después de los `fork()`.
+
+### Snapshot consistente (`minidb snapshot M`)
+
+El padre sigue este orden:
+
+1. Calcula el checksum de la tabla y el saldo total **antes** del `fork()`.
+2. Limpia los bits de acceso de las 64 páginas con `pgaccess()`. Se hace
+   después del cálculo del checksum, porque recorrer la tabla marca todas
+   las páginas como accedidas.
+3. Hace `fork()`. El hijo escribe `snap.db` (un `struct snap_encabezado`
+   con el checksum previo al fork, seguido de las 8.192 cuentas) y termina.
+   Las cuentas se escriben directamente desde la tabla, sin copiarla a otro
+   buffer; esa es la "foto" que entrega CoW sin costo.
+4. Sin esperar al hijo, el padre aplica las M transferencias con semilla 4.
+   Rechaza una transferencia si origen y destino son la misma cuenta o si el
+   origen no tiene saldo suficiente; si la aplica, mueve el monto y suma 1 a
+   `nmov` en ambas cuentas.
+5. Reporta las páginas tocadas (con `pgaccess()`) y la diferencia de
+   `cowfaults` y `cowcopies` medida con `cowstat()` antes y después de las
+   transferencias.
+6. Hace `wait()`, vuelve a leer `snap.db` y verifica el encabezado, que el
+   checksum de las cuentas guardadas sea el de antes del fork y que el saldo
+   total de la tabla se haya conservado. Imprime `snapshot: OK` solo si todo
+   se cumple.
+
+
 # Archivos principales
 | Archivo | Descripción |
 |---|---|
