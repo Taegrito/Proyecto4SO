@@ -42,7 +42,6 @@ Solo se modificó `user/minidb.c`. Se completaron
 
 minidb snapshot M` guarda en `snap.db` una copia consistente de la tabla de 8.192 cuentas mientras el padre sigue aplicando M transferencias
 
-Ambos comandos venían implementados en el esqueleto y no se cambiaron.
 `consulta` crea K trabajadores con `fork()`, cada uno procesa un rango de
 cuentas y envía su resultado al padre por un pipe unico. Como los
 trabajadores solo leen la tabla, CoW nunca copia sus páginas: por eso la
